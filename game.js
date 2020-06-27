@@ -1,15 +1,4 @@
-/*
-  Code modified from:
-  http://www.lostdecadegames.com/how-to-make-a-simple-html5-canvas-game/
-  using graphics purchased from vectorstock.com
-*/
-
-/* Initialization.
-Here, we create and add our "canvas" to the page.
-We also load all of our images. 
-*/
-
-
+// Duy Hung's game 
 let canvas;
 let ctx;
 
@@ -26,6 +15,7 @@ let startTime = Date.now();
 const SECONDS_PER_ROUND = 30;
 let elapsedTime = 0;
 let point = 0
+let shouldShowSpeedPotion=true
 
 function loadImages() {
   bgImage = new Image();
@@ -51,38 +41,27 @@ function loadImages() {
     speedPotionReady = true;
   };
   speedPotionImage.src = "images/speedpotion.png";
-
 }
-
-/** 
- * Setting up our characters.
- * 
- * Note that heroX represents the X position of our hero.
- * heroY represents the Y position.
- * We'll need these values to know where to "draw" the hero.
- * 
- * The same applies to the monster.
- */
+function randomX(){
+ return Math.floor(Math.random() * canvas.width)
+}
+function randomY(){
+ return Math.floor(Math.random() * canvas.height)
+}
 
 let heroX = canvas.width / 2;
 let heroY = canvas.height / 2;
+let heroSpeed = 5
 
-let monsterX = 100;
-let monsterY = 100;
+let monsterX = randomX();
+let monsterY = randomY()
 
-let speedPotionX = 100;
-let speedPotionY = 100;
+let speedPotionX =  randomX();
+let speedPotionY = randomY()
 
-/** 
- * Keyboard Listeners
- * You can safely ignore this part, for now. 
- * 
- * This is just to let JavaScript know when the user has pressed a key.
-*/
 let keysDown = {};
 function setupKeyboardListeners() {
-  // Check for keys pressed where key represents the keycode captured
-  // For now, do not worry too much about what's happening here. 
+
   addEventListener("keydown", function (key) {
     keysDown[key.keyCode] = true;
   }, false);
@@ -92,19 +71,18 @@ function setupKeyboardListeners() {
   }, false);
 }
 
-
 function control() {
   if (38 in keysDown) {
-    heroY -= 5;
+    heroY -= heroSpeed;
   }
   if (40 in keysDown) {
-    heroY += 5;
+    heroY += heroSpeed;
   }
   if (37 in keysDown) {
-    heroX -= 5;
+    heroX -= heroSpeed;
   }
   if (39 in keysDown) {
-    heroX += 5;
+    heroX += heroSpeed;
   }
 }
 
@@ -124,19 +102,34 @@ function wrapAround() {
 }
 
 function pointSystem() {
-  if (
+  const heroCaughtSpeedPotion =
+    heroX <= (speedPotionX + 32)
+    && speedPotionX <= (heroX + 32)
+    && heroY <= (speedPotionY + 32)
+    && speedPotionY <= (heroY + 32)
+  if (heroCaughtSpeedPotion) {
+    shouldShowSpeedPotion=false
+    heroSpeed = 10
+    setTimeout(function(){
+      shouldShowSpeedPotion=true
+      heroSpeed = 5
+    },10000)
+    
+  }
+
+  const heroCaughtMonster =
     heroX <= (monsterX + 32)
     && monsterX <= (heroX + 32)
     && heroY <= (monsterY + 32)
     && monsterY <= (heroY + 32)
-  ) {
+  if (heroCaughtMonster) {
     point++
     document.getElementById(`point`).innerHTML = "point:" + point
 
-    monsterX = Math.floor(Math.random() * canvas.width)
-    monsterY = Math.floor(Math.random() * canvas.height)
-    speedPotionX = Math.floor(Math.random() * canvas.width)
-    speedPotionY = Math.floor(Math.random() * canvas.height)
+    monsterX = randomX()
+    monsterY =randomY()
+    speedPotionX = randomX()
+    speedPotionY =randomY()
 
   }
 }
@@ -153,7 +146,6 @@ let update = function () {
  * This function, render, runs as often as possible.
  */
 var render = function () {
-  console.log("red", elapsedTime)
 
   if (bgReady) {
     ctx.drawImage(bgImage, 0, 0);
@@ -164,7 +156,7 @@ var render = function () {
   if (monsterReady) {
     ctx.drawImage(monsterImage, monsterX, monsterY);
   }
-  if (speedPotionReady && elapsedTime >= 5) {
+  if (speedPotionReady && elapsedTime >= 5 && shouldShowSpeedPotion) {
     ctx.drawImage(speedPotionImage, speedPotionX, speedPotionY)
   }
   ctx.fillText(`Seconds Remaining: ${SECONDS_PER_ROUND - elapsedTime}`, 20, 100);
