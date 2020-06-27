@@ -111,6 +111,8 @@ function pointSystem() {
     shouldShowSpeedPotion=false
     heroSpeed = 10
     setTimeout(function(){
+      speedPotionX = randomX()
+      speedPotionY =randomY()
       shouldShowSpeedPotion=true
       heroSpeed = 5
     },10000)
@@ -128,8 +130,6 @@ function pointSystem() {
 
     monsterX = randomX()
     monsterY =randomY()
-    speedPotionX = randomX()
-    speedPotionY =randomY()
 
   }
 }
