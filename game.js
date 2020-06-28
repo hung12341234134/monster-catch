@@ -8,14 +8,15 @@ canvas.width = 512;
 canvas.height = 480;
 document.body.appendChild(canvas);
 
-let bgReady, heroReady, monsterReady, speedPotionReady;
-let bgImage, heroImage, monsterImage, speedPotionImage;
+let bgReady, heroReady, monsterReady, speedPotionReady, doublePointsPotionReady;
+let bgImage, heroImage, monsterImage, speedPotionImage, doublePointsPotionImage;
 
 let startTime = Date.now();
 const SECONDS_PER_ROUND = 30;
 let elapsedTime = 0;
 let point = 0
-let shouldShowSpeedPotion=true
+let shouldShowSpeedPotion = true
+let shouldShowDoublePoints = true
 
 function loadImages() {
   bgImage = new Image();
@@ -41,23 +42,52 @@ function loadImages() {
     speedPotionReady = true;
   };
   speedPotionImage.src = "images/speedpotion.png";
+
+  doublePointsPotionImage = new Image();
+  doublePointsPotionImage.onload = function () {
+    doublePointsPotionReady = true;
+  };
+  doublePointsPotionImage.src = "images/doublepoints.png";
 }
-function randomX(){
- return Math.floor(Math.random() * canvas.width)
-}
-function randomY(){
- return Math.floor(Math.random() * canvas.height)
+
+
+function randomlyPlace(axis) {
+  // Solution 1:
+  //return axis == 'y' ? Math.floor(Math.random() * canvas.height):  Math.floor(Math.random() * canvas.width)
+
+  //Solution 2:
+  // if(axis=='y'){
+  //   return Math.floor(Math.random() * canvas.height)
+  // }
+  // else{
+  //   return Math.floor(Math.random() * canvas.width)
+  // }
+
+  // Solution 3:
+  let amount
+  if (axis == 'y') {
+    amount = Math.floor(Math.random() * canvas.height)
+  } else {
+    amount = Math.floor(Math.random() * canvas.width)
+  }
+  return amount
 }
 
 let heroX = canvas.width / 2;
 let heroY = canvas.height / 2;
 let heroSpeed = 5
 
-let monsterX = randomX();
-let monsterY = randomY()
+let monsterX = randomlyPlace('x');
+let monsterY = randomlyPlace('y')
+console.log(monsterX, monsterY)
 
-let speedPotionX =  randomX();
-let speedPotionY = randomY()
+let speedPotionX = randomlyPlace("x");
+let speedPotionY = randomlyPlace("y")
+
+let doublePointsX = randomlyPlace("x");
+let doublePointsY = randomlyPlace("y")
+
+let monsterCapturePoints = 1
 
 let keysDown = {};
 function setupKeyboardListeners() {
@@ -108,15 +138,29 @@ function pointSystem() {
     && heroY <= (speedPotionY + 32)
     && speedPotionY <= (heroY + 32)
   if (heroCaughtSpeedPotion) {
-    shouldShowSpeedPotion=false
+    shouldShowSpeedPotion = false
     heroSpeed = 10
-    setTimeout(function(){
-      speedPotionX = randomX()
-      speedPotionY =randomY()
-      shouldShowSpeedPotion=true
+    speedPotionX = randomlyPlace("x")
+    speedPotionY = randomlyPlace("y")
+    setTimeout(function () {
+      shouldShowSpeedPotion = true
       heroSpeed = 5
-    },10000)
-    
+    }, 5000)
+  }
+  const heroCaughtDoublePointsPotion =
+    heroX <= (doublePointsX + 32)
+    && doublePointsX <= (heroX + 32)
+    && heroY <= (doublePointsY + 32)
+    && doublePointsY <= (heroY + 32)
+  if (heroCaughtDoublePointsPotion) {
+    shouldShowDoublePoints = false
+    monsterCapturePoints = 2
+    doublePointsX = randomlyPlace("x")
+    doublePointsY = randomlyPlace("y")
+    setTimeout(function () {
+      shouldShowDoublePoints = true
+      monsterCapturePoints = 1
+    }, 10000)
   }
 
   const heroCaughtMonster =
@@ -125,12 +169,10 @@ function pointSystem() {
     && heroY <= (monsterY + 32)
     && monsterY <= (heroY + 32)
   if (heroCaughtMonster) {
-    point++
+    point = point + monsterCapturePoints
     document.getElementById(`point`).innerHTML = "point:" + point
-
-    monsterX = randomX()
-    monsterY =randomY()
-
+    monsterX = randomlyPlace("x")
+    monsterY = randomlyPlace("y")
   }
 }
 
@@ -146,7 +188,6 @@ let update = function () {
  * This function, render, runs as often as possible.
  */
 var render = function () {
-
   if (bgReady) {
     ctx.drawImage(bgImage, 0, 0);
   }
@@ -159,6 +200,11 @@ var render = function () {
   if (speedPotionReady && elapsedTime >= 5 && shouldShowSpeedPotion) {
     ctx.drawImage(speedPotionImage, speedPotionX, speedPotionY)
   }
+
+  if (doublePointsPotionReady && elapsedTime >= 1 && shouldShowDoublePoints) {
+    ctx.drawImage(doublePointsPotionImage, doublePointsX, doublePointsY)
+  }
+
   ctx.fillText(`Seconds Remaining: ${SECONDS_PER_ROUND - elapsedTime}`, 20, 100);
 };
 
