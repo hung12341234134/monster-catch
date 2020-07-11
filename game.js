@@ -1,4 +1,5 @@
 // Duy Hung's game 
+// With Loi's Help
 let canvas;
 let ctx;
 
@@ -8,15 +9,16 @@ canvas.width = 512;
 canvas.height = 480;
 document.body.appendChild(canvas);
 
-let bgReady, heroReady, monsterReady, speedPotionReady, doublePointsPotionReady;
-let bgImage, heroImage, monsterImage, speedPotionImage, doublePointsPotionImage;
+let bgReady, heroReady, monsterReady, speedPotionReady, doublePointsPotionReady, timerReady;
+let bgImage, heroImage, monsterImage, speedPotionImage, doublePointsPotionImage, timerImage;
 
 let startTime = Date.now();
-const SECONDS_PER_ROUND = 30;
+const SECONDS_PER_ROUND = 5;
 let elapsedTime = 0;
 let point = 0
 let shouldShowSpeedPotion = true
 let shouldShowDoublePoints = true
+let shouldShowTimer = true
 
 function loadImages() {
   bgImage = new Image();
@@ -48,6 +50,12 @@ function loadImages() {
     doublePointsPotionReady = true;
   };
   doublePointsPotionImage.src = "images/doublepoints.png";
+
+  timerImage = new Image();
+  timerImage.onload = function () {
+    timerReady = true;
+  };
+  timerImage.src = "images/timer.png";
 }
 
 
@@ -86,6 +94,9 @@ let speedPotionY = randomlyPlace("y")
 
 let doublePointsX = randomlyPlace("x");
 let doublePointsY = randomlyPlace("y")
+
+let timerX = randomlyPlace("x");
+let timerY = randomlyPlace("y")
 
 let monsterCapturePoints = 1
 
@@ -162,6 +173,20 @@ function pointSystem() {
       monsterCapturePoints = 1
     }, 10000)
   }
+  const heroCaughtTimer =
+    heroX <= (timerX + 32)
+    && timerX <= (heroX + 32)
+    && heroY <= (timerY + 32)
+    && timerY <= (heroY + 32)
+  if (heroCaughtTimer) {
+    shouldShowTimer = false
+    remainingTime += 10
+    timerY = randomlyPlace("y")
+    setTimeout(function () {
+      shouldShowTimer = true
+    }, 100000)
+  }
+
 
   const heroCaughtMonster =
     heroX <= (monsterX + 32)
@@ -175,10 +200,12 @@ function pointSystem() {
     monsterY = randomlyPlace("y")
   }
 }
-
+let remainingTime = 30
 let update = function () {
   elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-  if (elapsedTime > 30) return
+  
+  if (elapsedTime > remainingTime) return
+
   control()
   wrapAround()
   pointSystem()
@@ -205,15 +232,26 @@ var render = function () {
     ctx.drawImage(doublePointsPotionImage, doublePointsX, doublePointsY)
   }
 
-  ctx.fillText(`Seconds Remaining: ${SECONDS_PER_ROUND - elapsedTime}`, 20, 100);
+  if (timerReady ) {
+    ctx.drawImage(timerImage, timerX, timerY)
+  }
+
+  // ctx.fillRect(x, y, xEnd, yEnd);
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(300, 10, 150, 20);
+
+  // ctx.fillText('Hello World Im Loi!', 10, 50)
+  ctx.fillStyle = "red";
+
+  ctx.fillText(`Seconds Remaining: ${remainingTime - elapsedTime}`, 320, 23);
 };
 
 var main = function () {
   update();
   render();
   requestAnimationFrame(main);
-};
-
+}
 var w = window;
 requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 
